@@ -1,0 +1,12 @@
+{
+  "name": "web-check",
+  "version": "1.0.0",
+  "description": "A lightweight tool to measure the response time of websites.",
+  "main": "src/speedTest.mjs",
+  "scripts": {
+    "start": "node src/speedTest.mjs"
+  },
+  "author": "Shivam Sharma <meshivam81@gmail.com>",
+  "license": "MIT",
+  "type": "module"
+}
