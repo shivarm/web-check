@@ -11,6 +11,12 @@ Web Check is a lightweight tool designed to measure the response time of website
 To test the response time of `github.com`, `google.com`, and `facebook.com`, run:
 
 ```bash
+ npm start github.com google.com facebook.com
+```
+
+or you can use node.js directly to run the script:
+
+```bash
 node --run start -- github.com google.com facebook.com
 ```
 

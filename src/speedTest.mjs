@@ -1,4 +1,5 @@
 import http from "node:http";
+import chalk from "chalk";
 
 /*
  * Ping the websites
@@ -8,16 +9,16 @@ import http from "node:http";
 
 function pingWebsite(url) {
   const hostname = url.replace(/^https?:\/\//, "");
-  console.log(`Testing connection to ${hostname}`);
+  console.log(chalk.yellow.bold(`Testing connection to ${hostname}`));
   const startTime = Date.now();
   // handle the request from the user
   const req = http.get(`http:///${hostname}`, (res) => {
     const { statusCode } = res;
     const endTime = Date.now();
     const responseTime = endTime - startTime;
-    console.log(`Connected to ${hostname}`);
-    console.log(`Response status : ${statusCode}`);
-    console.log(`Response Time : ${responseTime}ms`);
+    console.log(chalk.green.bold(`Connected to ${hostname}`));
+    console.log(chalk.magenta(`Response status : ${statusCode}`));
+    console.log(chalk.magenta(`Response Time : ${responseTime}ms`));
 
     // Clean up the request
     res.resume();
@@ -28,22 +29,25 @@ function pingWebsite(url) {
   req.on("error", (err) => {
     const endTime = Date.now();
     const responseTime = endTime - startTime;
-    console.log(`Failed to connect to ${hostname}: ${err.message}`);
-    console.log(`Time elapsed before failure ${responseTime}ms`);
+    console.log(chalk.red(`Failed to connect to ${hostname}: ${err.message}`));
+    console.log(chalk.red(`Time elapsed before failure ${responseTime}ms`));
   });
 
   // Timeout for the request is 3 seconds
 
   req.setTimeout(3000, () => {
+    const endTime = Date.now();
     const responseTime = endTime - startTime;
-    console.log(`Connect to ${hostname} time out`);
-    console.log(`Time elapsed before failure ${responseTime}ms`);
+    console.log(chalk.red(`Connection to ${hostname} timed out`));
+    console.log(chalk.red(`Time elapsed before failure: ${responseTime}ms`));
   });
 }
 
 if (process.argv.length < 3) {
   console.log(
-    "Usage: node speedTest.mjs website1 website2....\nExample: node speedTest.mjs github.com google.com"
+    chalk.red(
+      "Usage: node speedTest.mjs website1 website2....\nExample: node speedTest.mjs github.com google.com"
+    )
   );
 } else {
   const websites = process.argv.slice(2);
