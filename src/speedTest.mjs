@@ -12,7 +12,7 @@ function pingWebsite(url) {
   console.log(chalk.yellow.bold(`Testing connection to ${hostname}`));
   const startTime = Date.now();
   // handle the request from the user
-  const req = http.get(`http:///${hostname}`, (res) => {
+  const req = http.get(`http://${hostname}`, (res) => {
     const { statusCode } = res;
     const endTime = Date.now();
     const responseTime = endTime - startTime;
