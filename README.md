@@ -8,6 +8,12 @@ Web Check is a lightweight tool designed to measure the response time of website
 
 ## How to Run?
 
+Install the required dependencies using npm:
+
+```bash
+npm install
+```
+
 To test the response time of `github.com`, `google.com`, and `facebook.com`, run:
 
 ```bash

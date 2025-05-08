@@ -46,7 +46,7 @@ function pingWebsite(url) {
 if (process.argv.length < 3) {
   console.log(
     chalk.red(
-      "Usage: node speedTest.mjs website1 website2....\nExample: node speedTest.mjs github.com google.com"
+      "Usage: npm start website1 website2....\nExample: npm start github.com google.com facebook.com"
     )
   );
 } else {
