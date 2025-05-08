@@ -8,5 +8,8 @@
   },
   "author": "Shivam Sharma <meshivam81@gmail.com>",
   "license": "MIT",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "chalk": "^5.4.1"
+  }
 }
