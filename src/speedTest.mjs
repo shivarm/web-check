@@ -1,4 +1,4 @@
-import http from "node:http";
+import https from "node:https";
 import chalk from "chalk";
 
 /*
@@ -12,14 +12,19 @@ function pingWebsite(url) {
   console.log(chalk.yellow.bold(`Testing connection to ${hostname}`));
   const startTime = Date.now();
   // handle the request from the user
-  const req = http.get(`http://${hostname}`, (res) => {
-    const { statusCode } = res;
+  const req = https.get(`https://${hostname}`, (res) => {
+    const { statusCode, headers } = res;
     const endTime = Date.now();
     const responseTime = endTime - startTime;
-    console.log(chalk.green.bold(`Connected to ${hostname}`));
-    console.log(chalk.magenta(`Response status : ${statusCode}`));
-    console.log(chalk.magenta(`Response Time : ${responseTime}ms`));
 
+    if (statusCode >= 300 && statusCode < 400 && headers.location) {
+      console.log(chalk.blue(`Redirected to ${headers.location}`));
+      pingWebsite(headers.location);
+    } else {
+      console.log(chalk.green.bold(`Connected to ${hostname}`));
+      console.log(chalk.magenta(`Response status : ${statusCode}`));
+      console.log(chalk.magenta(`Response Time : ${responseTime}ms`));
+    }
     // Clean up the request
     res.resume();
   });
@@ -31,6 +36,7 @@ function pingWebsite(url) {
     const responseTime = endTime - startTime;
     console.log(chalk.red(`Failed to connect to ${hostname}: ${err.message}`));
     console.log(chalk.red(`Time elapsed before failure ${responseTime}ms`));
+    process.exit(1);
   });
 
   // Timeout for the request is 3 seconds
