@@ -24,6 +24,17 @@ function pingWebsite(url) {
       console.log(chalk.green.bold(`Connected to ${hostname}`));
       console.log(chalk.magenta(`Response status : ${statusCode}`));
       console.log(chalk.magenta(`Response Time : ${responseTime}ms`));
+
+      const cert = res.socket.getPeerCertificate();
+      if (cert) {
+        console.log(chalk.green(`SSL Certificate Details for ${hostname}:`));
+        console.log(chalk.cyan(`Issuer: ${cert.issuer.O || "N/A"}`));
+        console.log(chalk.cyan(`Valid From: ${cert.valid_from}`));
+        console.log(chalk.cyan(`Valid To: ${cert.valid_to}`));
+        console.log(chalk.cyan(`Subject: ${cert.subject.O || "N/A"}`));
+      } else {
+        console.log(chalk.red(`No SSL certificate found for ${hostname}`));
+      }
     }
     // Clean up the request
     res.resume();
@@ -36,7 +47,6 @@ function pingWebsite(url) {
     const responseTime = endTime - startTime;
     console.log(chalk.red(`Failed to connect to ${hostname}: ${err.message}`));
     console.log(chalk.red(`Time elapsed before failure ${responseTime}ms`));
-    process.exit(1);
   });
 
   // Timeout for the request is 3 seconds
