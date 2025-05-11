@@ -8,66 +8,80 @@ import chalk from "chalk";
  */
 
 function pingWebsite(url) {
-  const hostname = url.replace(/^https?:\/\//, "");
-  console.log(chalk.yellow.bold(`Testing connection to ${hostname}`));
-  const startTime = Date.now();
-  // handle the request from the user
-  const req = https.get(`https://${hostname}`, (res) => {
-    const { statusCode, headers } = res;
-    const endTime = Date.now();
-    const responseTime = endTime - startTime;
+  return new Promise((resolve, reject) => {
+    const hostname = url.replace(/^https?:\/\//, "");
+    console.log(chalk.yellow.bold(`Testing connection to ${hostname}`));
+    const startTime = Date.now();
 
-    if (statusCode >= 300 && statusCode < 400 && headers.location) {
-      console.log(chalk.blue(`Redirected to ${headers.location}`));
-      pingWebsite(headers.location);
-    } else {
-      console.log(chalk.green.bold(`Connected to ${hostname}`));
-      console.log(chalk.magenta(`Response status : ${statusCode}`));
-      console.log(chalk.magenta(`Response Time : ${responseTime}ms`));
+    const req = https.get(`https://${hostname}`, (res) => {
+      const { statusCode, headers } = res;
+      const endTime = Date.now();
+      const responseTime = endTime - startTime;
 
-      const cert = res.socket.getPeerCertificate();
-      if (cert) {
-        console.log(chalk.green(`SSL Certificate Details for ${hostname}:`));
-        console.log(chalk.cyan(`Issuer: ${cert.issuer.O || "N/A"}`));
-        console.log(chalk.cyan(`Valid From: ${cert.valid_from}`));
-        console.log(chalk.cyan(`Valid To: ${cert.valid_to}`));
-        console.log(chalk.cyan(`Subject: ${cert.subject.O || "N/A"}`));
+      if (statusCode >= 300 && statusCode < 400 && headers.location) {
+        console.log(chalk.blue(`Redirected to ${headers.location}`));
+        resolve(pingWebsite(headers.location));  
       } else {
-        console.log(chalk.red(`No SSL certificate found for ${hostname}`));
+        console.log(chalk.green.bold(`Connected to ${hostname}`));
+        console.log(chalk.magenta(`Response status : ${statusCode}`));
+        console.log(chalk.magenta(`Response Time : ${responseTime}ms`));
+
+        // Retrieve SSL certificate details
+        const cert = res.socket.getPeerCertificate();
+        if (cert) {
+          console.log(chalk.green(`SSL Certificate Details for ${hostname}:`));
+          console.log(chalk.cyan(`Issuer: ${cert.issuer.O || "N/A"}`));
+          console.log(chalk.cyan(`Valid From: ${cert.valid_from}`));
+          console.log(chalk.cyan(`Valid To: ${cert.valid_to}`));
+          console.log(chalk.cyan(`Subject: ${cert.subject.O || "N/A"}`));
+        } else {
+          console.log(chalk.red(`No SSL certificate found for ${hostname}`));
+        }
+        resolve();  
       }
-    }
-    // Clean up the request
-    res.resume();
-  });
 
-  // handle the event
+      res.resume(); // Clean up the response
+    });
 
-  req.on("error", (err) => {
-    const endTime = Date.now();
-    const responseTime = endTime - startTime;
-    console.log(chalk.red(`Failed to connect to ${hostname}: ${err.message}`));
-    console.log(chalk.red(`Time elapsed before failure ${responseTime}ms`));
-  });
+    req.on("error", (err) => {
+      const endTime = Date.now();
+      const responseTime = endTime - startTime;
+      console.log(chalk.red(`Failed to connect to ${hostname}: ${err.message}`));
+      console.log(chalk.red(`Time elapsed before failure: ${responseTime}ms`));
+      reject(err);  
+    });
 
-  // Timeout for the request is 3 seconds
-
-  req.setTimeout(3000, () => {
-    const endTime = Date.now();
-    const responseTime = endTime - startTime;
-    console.log(chalk.red(`Connection to ${hostname} timed out`));
-    console.log(chalk.red(`Time elapsed before failure: ${responseTime}ms`));
+    req.setTimeout(3000, () => {
+      const endTime = Date.now();
+      const responseTime = endTime - startTime;
+      console.log(chalk.red(`Connection to ${hostname} timed out`));
+      console.log(chalk.red(`Time elapsed before failure: ${responseTime}ms`));
+      req.destroy(); // Destroy the request to free resources
+      reject(new Error("Request timed out")); // Reject the promise on timeout
+    });
   });
 }
 
-if (process.argv.length < 3) {
-  console.log(
-    chalk.red(
-      "Usage: npm start website1 website2....\nExample: npm start github.com google.com facebook.com"
-    )
-  );
-} else {
+async function main() {
+  if (process.argv.length < 3) {
+    console.log(
+      chalk.red(
+        "Usage: npm start website1 website2....\nExample: npm start github.com google.com facebook.com"
+      )
+    );
+    return;
+  }
+
   const websites = process.argv.slice(2);
-  websites.forEach((site) => {
-    pingWebsite(site);
-  });
+
+  for (const site of websites) {
+    try {
+      await pingWebsite(site); // Wait for each website to complete
+    } catch (err) {
+      console.log(chalk.red(`Error processing ${site}: ${err.message}`));
+    }
+  }
+  console.log(chalk.green.bold("All websites processed."));
 }
+
+main();
