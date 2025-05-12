@@ -38,7 +38,7 @@ function pingWebsite(url) {
         } else {
           console.log(chalk.red(`No SSL certificate found for ${hostname}`));
         }
-        resolve();  
+        resolve();
       }
 
       res.resume(); // Clean up the response
@@ -49,7 +49,7 @@ function pingWebsite(url) {
       const responseTime = endTime - startTime;
       console.log(chalk.red(`Failed to connect to ${hostname}: ${err.message}`));
       console.log(chalk.red(`Time elapsed before failure: ${responseTime}ms`));
-      reject(err);  
+      reject(err);
     });
 
     req.setTimeout(3000, () => {
@@ -64,25 +64,33 @@ function pingWebsite(url) {
 }
 
 async function main() {
-  if (process.argv.length < 3) {
-    console.log(
-      chalk.red(
-        "Usage: npm start website1 website2....\nExample: npm start github.com google.com facebook.com"
-      )
-    );
-    return;
-  }
-
   const websites = process.argv.slice(2);
 
-  for (const site of websites) {
-    try {
-      await pingWebsite(site); // Wait for each website to complete
-    } catch (err) {
-      console.log(chalk.red(`Error processing ${site}: ${err.message}`));
-    }
+  if (websites.length === 0) {
+    console.log(chalk.red("Error: No websites provided."));
+    console.log(
+      chalk.red(
+        "Usage: npm start website1 website2....\nExample: npm start github.com google.com amazon.com"
+      )
+    );
+    process.exit(1);
   }
-  console.log(chalk.green.bold("All websites processed."));
+
+  try {
+    // Process all websites in parallel
+    await Promise.all(
+      websites.map(async (site) => {
+        try {
+          await pingWebsite(site);
+        } catch (err) {
+          console.log(chalk.red(`Error processing ${site}: ${err.message}`));
+        }
+      })
+    );
+    console.log(chalk.green.bold("All websites processed."));
+  } catch (err) {
+    console.log(chalk.red(`Error processing websites: ${err.message}`));
+  }
 }
 
 main();
