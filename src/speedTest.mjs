@@ -13,14 +13,15 @@ function pingWebsite(url) {
     console.log(chalk.yellow.bold(`Testing connection to ${hostname}`));
     const startTime = Date.now();
 
-    const req = https.get(`https://${hostname}`, (res) => {
+    const req = https.get(`https://${hostname}`, async (res) => {
       const { statusCode, headers } = res;
       const endTime = Date.now();
       const responseTime = endTime - startTime;
 
       if (statusCode >= 300 && statusCode < 400 && headers.location) {
         console.log(chalk.blue(`Redirected to ${headers.location}`));
-        resolve(pingWebsite(headers.location));  
+        const redirectedResponse = await pingWebsite(headers.location);
+        resolve(redirectedResponse);
       } else {
         console.log(chalk.green.bold(`Connected to ${hostname}`));
         console.log(chalk.magenta(`Response status : ${statusCode}`));
